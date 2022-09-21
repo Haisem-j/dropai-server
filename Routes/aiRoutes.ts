@@ -1,44 +1,37 @@
-const express = require("express");
-const cors = require("cors");
+import express, { Request, Response, NextFunction, Express } from "express";
+import Stripe from "stripe";
+
+import { openai } from "../openaiConfig";
+import middleware from "../middleware";
+
+import {
+  generateNames,
+  generateAd,
+  generateBenefits,
+  generateDescription,
+  generateMoreAds,
+  generateMoreBenefits,
+  generateMoreDescription,
+  generateMoreNames,
+  generateMoreTaglines,
+  generateTaglines,
+} from "../openAiRequests";
+
+const router = express.Router();
+router.use(middleware.decodeToken);
 require("dotenv").config();
 
-const middleware = require("./middleware");
-const { openai } = require("./openaiConfig");
-const {
-  generateNames,
-  generateMoreNames,
-} = require("./openAiRequests/nameGenerator");
-const {
-  generateDescription,
-  generateMoreDescription,
-} = require("./openAiRequests/descriptionGenerator");
-const {
-  generateBenefits,
-  generateMoreBenefits,
-} = require("./openAiRequests/benefitsGenerator");
-const { generateAd, generateMoreAds } = require("./openAiRequests/adGenerator");
-const {
-  generateTaglines,
-  generateMoreTaglines,
-} = require("./openAiRequests/taglinesGenerator");
+const stripe = new Stripe(process.env.STRIPE_KEY || "", {
+  apiVersion: "2022-08-01",
+});
 
-const app = express();
-const port = 8080;
-
-// Middlewares
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(middleware.decodeToken);
-
-// Routes
 /**
  * Req.body -> description, seed, productNames
  */
-app.post("/api/generate-names", async (req, res) => {
+router.post("/generate-names", async (req, res) => {
   const { description, seed, productNames } = req.body;
   try {
-    const completion = await openai.createCompletion({
+    const { data } = await openai.createCompletion({
       model: "text-davinci-002",
       prompt: generateNames({ description, seed, productNames }),
       temperature: 0.8,
@@ -47,14 +40,16 @@ app.post("/api/generate-names", async (req, res) => {
       frequency_penalty: 0,
       presence_penalty: 0,
     });
-    res.status(200).json({
-      result: completion.data.choices[0].text,
-      previous: {
-        description,
-        seed,
-        productNames,
-      },
-    });
+    if (data.choices) {
+      res.status(200).json({
+        result: data.choices[0].text,
+        previous: {
+          description,
+          seed,
+          productNames,
+        },
+      });
+    }
   } catch (error) {
     console.log("Error /api/generate-names - ", error);
   }
@@ -63,10 +58,10 @@ app.post("/api/generate-names", async (req, res) => {
 /**
  * Req.body -> previousState: {description, seed, productNames}, pNames: string,
  */
-app.post("/api/generate-more-names", async (req, res) => {
+router.post("/generate-more-names", async (req, res) => {
   const { description, seed, productNames } = req.body.previousState;
   try {
-    const completion = await openai.createCompletion({
+    const { data } = await openai.createCompletion({
       model: "text-davinci-002",
       prompt: generateMoreNames(req.body.previousState, req.body.pNames),
       temperature: 0.8,
@@ -75,14 +70,16 @@ app.post("/api/generate-more-names", async (req, res) => {
       frequency_penalty: 0,
       presence_penalty: 0,
     });
-    res.status(200).json({
-      result: completion.data.choices[0].text,
-      previous: {
-        description,
-        seed,
-        productNames,
-      },
-    });
+    if (data.choices) {
+      res.status(200).json({
+        result: data.choices[0].text,
+        previous: {
+          description,
+          seed,
+          productNames,
+        },
+      });
+    }
   } catch (error) {
     console.log("Error /api/generate-more-names - ", error);
   }
@@ -92,10 +89,10 @@ app.post("/api/generate-more-names", async (req, res) => {
  * Product Description Routes
  */
 // Req.body -> productName, shortDescription, maxLength
-app.post("/api/generate-prod-description", async (req, res) => {
+router.post("/generate-prod-description", async (req, res) => {
   const { productName, shortDescription, maxLength, seed } = req.body;
   try {
-    const completion = await openai.createCompletion({
+    const { data } = await openai.createCompletion({
       model: "text-davinci-002",
       prompt: generateDescription(productName, shortDescription, seed),
       temperature: 0.8,
@@ -104,14 +101,16 @@ app.post("/api/generate-prod-description", async (req, res) => {
       frequency_penalty: 0,
       presence_penalty: 0,
     });
-    res.status(200).json({
-      result: completion.data.choices[0].text,
-    });
+    if (data.choices) {
+      res.status(200).json({
+        result: data.choices[0].text,
+      });
+    }
   } catch (error) {
     console.log("Error /api/generate-prod-description - ", error);
   }
 });
-app.post("/api/generate-more-prod-description", async (req, res) => {
+router.post("/generate-more-prod-description", async (req, res) => {
   const { productName, shortDescription, maxLength, previousOutput, seed } =
     req.body;
   const more = generateMoreDescription(
@@ -121,7 +120,7 @@ app.post("/api/generate-more-prod-description", async (req, res) => {
     seed
   );
   try {
-    const completion = await openai.createCompletion({
+    const { data } = await openai.createCompletion({
       model: "text-davinci-002",
       prompt: more,
       temperature: 0.8,
@@ -130,9 +129,11 @@ app.post("/api/generate-more-prod-description", async (req, res) => {
       frequency_penalty: 0,
       presence_penalty: 0,
     });
-    res.status(200).json({
-      result: completion.data.choices[0].text,
-    });
+    if (data.choices) {
+      res.status(200).json({
+        result: data.choices[0].text,
+      });
+    }
   } catch (error) {
     console.log("Error /api/generate-more-prod-description - ", error);
   }
@@ -142,11 +143,11 @@ app.post("/api/generate-more-prod-description", async (req, res) => {
  * Product Benefits Routes
  */
 // Req.body -> productName, shortDescription, seed
-app.post("/api/generate-prod-benefits", async (req, res) => {
+router.post("/generate-prod-benefits", async (req, res) => {
   const { productName, shortDescription, seed, maxLength } = req.body;
   console.log(generateBenefits(productName, shortDescription, seed));
   try {
-    const completion = await openai.createCompletion({
+    const { data } = await openai.createCompletion({
       model: "text-davinci-002",
       prompt: generateBenefits(productName, shortDescription, seed),
       temperature: 0.8,
@@ -155,19 +156,21 @@ app.post("/api/generate-prod-benefits", async (req, res) => {
       frequency_penalty: 0,
       presence_penalty: 0,
     });
-    res.status(200).json({
-      result: completion.data.choices[0].text,
-    });
+    if (data.choices) {
+      res.status(200).json({
+        result: data.choices[0].text,
+      });
+    }
   } catch (error) {
     console.log("Error /api/generate-prod-benefits - ", error);
   }
 });
 // Req.body -> productName, shortDescription, seed, previousOutput
-app.post("/api/generate-more-prod-benefits", async (req, res) => {
+router.post("/generate-more-prod-benefits", async (req, res) => {
   const { productName, shortDescription, seed, maxLength, previousOutput } =
     req.body;
   try {
-    const completion = await openai.createCompletion({
+    const { data } = await openai.createCompletion({
       model: "text-davinci-002",
       prompt: generateMoreBenefits(
         productName,
@@ -181,9 +184,11 @@ app.post("/api/generate-more-prod-benefits", async (req, res) => {
       frequency_penalty: 0,
       presence_penalty: 0,
     });
-    res.status(200).json({
-      result: completion.data.choices[0].text,
-    });
+    if (data.choices) {
+      res.status(200).json({
+        result: data.choices[0].text,
+      });
+    }
   } catch (error) {
     console.log("Error /api/generate-more-prod-benefits - ", error);
   }
@@ -193,10 +198,10 @@ app.post("/api/generate-more-prod-benefits", async (req, res) => {
  * Social Media Ads Routes
  */
 // Req.body ->  platform, targetAudience, productName, shortDescription;
-app.post("/api/generate-ad", async (req, res) => {
+router.post("/generate-ad", async (req, res) => {
   const { platform, targetAudience, productName, shortDescription } = req.body;
   try {
-    const completion = await openai.createCompletion({
+    const { data } = await openai.createCompletion({
       model: "text-davinci-002",
       prompt: generateAd(
         platform,
@@ -210,15 +215,17 @@ app.post("/api/generate-ad", async (req, res) => {
       frequency_penalty: 0,
       presence_penalty: 0,
     });
-    res.status(200).json({
-      result: completion.data.choices[0].text,
-    });
+    if (data.choices) {
+      res.status(200).json({
+        result: data.choices[0].text,
+      });
+    }
   } catch (error) {
     console.log("Error /api/generate-ads - ", error);
   }
 });
 // Req.body ->  platform, targetAudience, productName, shortDescription, previousOutput;
-app.post("/api/generate-more-ads", async (req, res) => {
+router.post("/generate-more-ads", async (req, res) => {
   const {
     platform,
     targetAudience,
@@ -227,7 +234,7 @@ app.post("/api/generate-more-ads", async (req, res) => {
     previousOutput,
   } = req.body;
   try {
-    const completion = await openai.createCompletion({
+    const { data } = await openai.createCompletion({
       model: "text-davinci-002",
       prompt: generateMoreAds(
         platform,
@@ -242,9 +249,11 @@ app.post("/api/generate-more-ads", async (req, res) => {
       frequency_penalty: 0,
       presence_penalty: 0,
     });
-    res.status(200).json({
-      result: completion.data.choices[0].text,
-    });
+    if (data.choices) {
+      res.status(200).json({
+        result: data.choices[0].text,
+      });
+    }
   } catch (error) {
     console.log("Error /api/generate-ads - ", error);
   }
@@ -254,10 +263,10 @@ app.post("/api/generate-more-ads", async (req, res) => {
  * Landing Page Copy Routes
  */
 // Req.body ->  platform, targetAudience, productName, shortDescription;
-app.post("/api/generate-taglines", async (req, res) => {
+router.post("/generate-taglines", async (req, res) => {
   const { productName, shortDescription } = req.body;
   try {
-    const completion = await openai.createCompletion({
+    const { data } = await openai.createCompletion({
       model: "text-davinci-002",
       prompt: generateTaglines(productName, shortDescription),
       temperature: 0.7,
@@ -266,18 +275,21 @@ app.post("/api/generate-taglines", async (req, res) => {
       frequency_penalty: 0,
       presence_penalty: 0,
     });
-    res.status(200).json({
-      result: completion.data.choices[0].text,
-    });
+    if (data.choices) {
+      res.status(200).json({
+        result: data.choices[0].text,
+      });
+    }
   } catch (error) {
-    console.log("Error /api/generate-ads - ", error);
+    console.log("Error /api/generate-taglines - err");
+    res.send({ err: error });
   }
 });
 // Req.body ->  platform, targetAudience, productName, shortDescription;
-app.post("/api/generate-more-taglines", async (req, res) => {
+router.post("/generate-more-taglines", async (req, res) => {
   const { productName, shortDescription, previousOutput } = req.body;
   try {
-    const completion = await openai.createCompletion({
+    const { data } = await openai.createCompletion({
       model: "text-davinci-002",
       prompt: generateMoreTaglines(
         productName,
@@ -290,14 +302,46 @@ app.post("/api/generate-more-taglines", async (req, res) => {
       frequency_penalty: 0,
       presence_penalty: 0,
     });
-    res.status(200).json({
-      result: completion.data.choices[0].text,
-    });
+    if (data.choices) {
+      res.status(200).json({
+        result: data.choices[0].text,
+      });
+    }
   } catch (error) {
     console.log("Error /api/generate-ads - ", error);
   }
 });
 
-app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`);
+/**
+ * Payments route
+ */
+// Checkout session
+router.post("/create-checkout-session", async (req, res) => {
+  try {
+    const customer = await stripe.customers.create({
+      metadata: {
+        userId: req.body.uid,
+        product: req.body.paymentId,
+      },
+    });
+    const session = await stripe.checkout.sessions.create({
+      line_items: [
+        {
+          price: req.body.paymentId,
+          quantity: 1,
+        },
+      ],
+      customer: customer.id,
+      mode: "subscription",
+      success_url: `${process.env.CLIENT_URL}/app/checkout-success`,
+      cancel_url: `${process.env.CLIENT_URL}/app/plans?canceled=true`,
+    });
+
+    res.send({ url: session.url });
+  } catch (error) {
+    res.status(400).json({ error: error });
+    console.log("Error /create-checkout-session - ", error);
+  }
 });
+
+export default router;

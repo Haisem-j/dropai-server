@@ -1,6 +1,7 @@
-const admin = require("../config/firebase-config");
+import { Request, Response, NextFunction, Express } from "express";
+import { admin } from "../config/firebase-config";
 class Middleware {
-  async decodeToken(req, res, next) {
+  async decodeToken(req: Request, res: Response, next: NextFunction) {
     if (!req.headers.authorization) {
       return res.json({ message: "Error authorization refused" });
     }
@@ -9,6 +10,8 @@ class Middleware {
     try {
       const decodeValue = await admin.auth().verifyIdToken(token);
       if (decodeValue) {
+        req.body.uid = decodeValue.uid;
+        req.body.userEmail = decodeValue.email;
         return next();
       }
     } catch (e) {
@@ -17,4 +20,4 @@ class Middleware {
   }
 }
 
-module.exports = new Middleware();
+export default new Middleware();

@@ -1,4 +1,4 @@
-const loadMore = (previousOutput) => {
+const loadMore = (previousOutput: string[]) => {
   let more = "";
 
   previousOutput.forEach((item, i) => {
@@ -13,7 +13,11 @@ const loadMore = (previousOutput) => {
   return more;
 };
 
-const generateDescription = (productName, shortDesc, seed) =>
+export const generateDescription = (
+  productName: string,
+  shortDesc: string,
+  seed: string
+) =>
   `
 Write a creative product description for a home milkshake maker.
 Product name: Shake Maker
@@ -25,11 +29,11 @@ Write a creative product description for a ${shortDesc}.
 Product name: ${productName}
 ${seed && "Seed words: " + seed} 
 `;
-const generateMoreDescription = (
-  productName,
-  shortDesc,
-  previousOutput,
-  seed
+export const generateMoreDescription = (
+  productName: string,
+  shortDesc: string,
+  previousOutput: string[],
+  seed: string
 ) =>
   `
 Write a creative product description for a ${shortDesc}.
@@ -39,8 +43,3 @@ ${seed && "Seed words: " + seed}
 ${loadMore(previousOutput)}
 
 `;
-
-module.exports = {
-  generateDescription,
-  generateMoreDescription,
-};

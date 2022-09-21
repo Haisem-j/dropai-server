@@ -1,29 +1,24 @@
-const { loadMore } = require(".");
+import { loadMore } from "./index";
 
-const generateAd = (
-  platform,
-  targetAudience,
-  productName,
-  shortDescription
+export const generateAd = (
+  platform: string,
+  targetAudience: string,
+  productName: string,
+  shortDescription: string
 ) => `
  Write a short creative ad for the following product to run on ${platform} aimed at ${targetAudience}:
 Product: ${productName} is a ${shortDescription}
 
 `;
 
-const generateMoreAds = (
-  platform,
-  targetAudience,
-  productName,
-  shortDescription,
-  previousOutput
+export const generateMoreAds = (
+  platform: string,
+  targetAudience: string,
+  productName: string,
+  shortDescription: string,
+  previousOutput: string[]
 ) => `
 Write a short creative ad for the following product to run on ${platform} aimed at ${targetAudience}:
 Product: ${productName} is a ${shortDescription}
 ${loadMore(previousOutput, "more ads", false)}
 `;
-
-module.exports = {
-  generateAd,
-  generateMoreAds,
-};

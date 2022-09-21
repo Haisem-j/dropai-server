@@ -1,6 +1,10 @@
-const { loadMore } = require(".");
+import { loadMore } from "./index";
 
-const generateBenefits = (productName, shortDesc, seed) => `
+export const generateBenefits = (
+  productName: string,
+  shortDesc: string,
+  seed: string
+) => `
 List some creative benefits of purchasing a portable blender.
 Product name: Blend Jet
 
@@ -14,14 +18,14 @@ Product name: ${productName}
 List some benefits of purchasing a ${shortDesc}.
 
 `;
-const generateMoreBenefits = (productName, shortDesc, previousOutput, seed) => `
+export const generateMoreBenefits = (
+  productName: string,
+  shortDesc: string,
+  previousOutput: string[],
+  seed: string
+) => `
 Product name: ${productName}
 List some creative benefits of purchasing a ${shortDesc}.
 
 ${loadMore(previousOutput, "list some more benefits", true)}
 `;
-
-module.exports = {
-  generateBenefits,
-  generateMoreBenefits,
-};

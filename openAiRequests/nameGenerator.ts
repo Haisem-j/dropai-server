@@ -1,4 +1,12 @@
-const generateNames = ({ description, seed, productNames }) => {
+export const generateNames = ({
+  description,
+  seed,
+  productNames,
+}: {
+  description: string;
+  seed: string;
+  productNames: string;
+}) => {
   const seeds = [...seed].join("");
   return `
 Create product names from examples words. Influenced by a community prompt.
@@ -19,7 +27,18 @@ ${productNames && "Similar Names:" + productNames}
 Product Names: 
 `;
 };
-const generateMoreNames = ({ description, seed, productNames }, pNames) => {
+export const generateMoreNames = (
+  {
+    description,
+    seed,
+    productNames,
+  }: {
+    description: string;
+    seed: string;
+    productNames: string;
+  },
+  pNames: string
+) => {
   return `
 Create product names from examples words. Influenced by a community prompt.
 
@@ -40,9 +59,4 @@ Product Names: ${pNames}
 
 more possible names:
 `;
-};
-
-module.exports = {
-  generateNames,
-  generateMoreNames,
 };
