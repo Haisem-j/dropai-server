@@ -1,5 +1,4 @@
 import express, { Request, Response, NextFunction, Express } from "express";
-import Stripe from "stripe";
 
 import { openai } from "../openaiConfig";
 import middleware from "../middleware";
@@ -20,10 +19,6 @@ import {
 const router = express.Router();
 router.use(middleware.decodeToken);
 require("dotenv").config();
-
-const stripe = new Stripe(process.env.STRIPE_KEY || "", {
-  apiVersion: "2022-08-01",
-});
 
 /**
  * Req.body -> description, seed, productNames
@@ -309,38 +304,6 @@ router.post("/generate-more-taglines", async (req, res) => {
     }
   } catch (error) {
     console.log("Error /api/generate-ads - ", error);
-  }
-});
-
-/**
- * Payments route
- */
-// Checkout session
-router.post("/create-checkout-session", async (req, res) => {
-  try {
-    const customer = await stripe.customers.create({
-      metadata: {
-        userId: req.body.uid,
-        product: req.body.paymentId,
-      },
-    });
-    const session = await stripe.checkout.sessions.create({
-      line_items: [
-        {
-          price: req.body.paymentId,
-          quantity: 1,
-        },
-      ],
-      customer: customer.id,
-      mode: "subscription",
-      success_url: `${process.env.CLIENT_URL}/app/checkout-success`,
-      cancel_url: `${process.env.CLIENT_URL}/app/plans?canceled=true`,
-    });
-
-    res.send({ url: session.url });
-  } catch (error) {
-    res.status(400).json({ error: error });
-    console.log("Error /create-checkout-session - ", error);
   }
 });
 

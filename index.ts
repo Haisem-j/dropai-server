@@ -4,6 +4,9 @@ import Stripe from "stripe";
 
 import AiRoutes from "./Routes/aiRoutes";
 import UsersRoutes from "./Routes/users";
+import PaymentsRoutes from "./Routes/paymentsRoute";
+import { db } from "./config/firebase-config";
+import { User } from "./models";
 
 require("dotenv").config();
 
@@ -36,12 +39,14 @@ app.use(express.urlencoded({ extended: true }));
 // Routes
 app.use("/api", AiRoutes);
 app.use("/api/user", UsersRoutes);
+app.use("/api/payments", PaymentsRoutes);
+app.use(express.static("landingpage"));
 // Web hooks -> checkout successful
 app.post(
   "/webhook",
   // Stripe requires the raw body to construct the event
   express.raw({ type: "application/json" }),
-  (req: express.Request, res: express.Response): void => {
+  async (req: express.Request, res: express.Response) => {
     const sig = req.headers["stripe-signature"];
 
     let event: Stripe.Event;
@@ -59,16 +64,30 @@ app.post(
     if (event.data.object) {
       const c: any = event.data.object;
       if (event.type === "checkout.session.completed") {
-        stripe.customers
-          .retrieve(c.customer)
-          .then((customer) => {
-            console.log(customer);
-            console.log("################################");
-            console.log(event?.data);
-          })
-          .catch((err) => {
-            console.log(err);
-          });
+        try {
+          const customer = await stripe.customers.retrieve(c.customer);
+          const tempObj = customer as any;
+          const { uid, newPlan } = tempObj.metadata;
+
+          const docRef = db.collection("users").doc(uid);
+          const usr = await docRef.get();
+          if (!usr.exists) {
+            throw new Error("User doesnt exist");
+          } else {
+            const { numberOfRequests } = usr.data() as User;
+            const newTokens = newPlan === "Standard" ? 3000 : 9999;
+            const updatedUser = {
+              numberOfRequests,
+              availableTokens: newTokens,
+              planType: newPlan,
+              paymentId: customer.id,
+            };
+            docRef.update(updatedUser);
+          }
+        } catch (error: any) {
+          console.log("Error - ", error.message);
+          res.send({ error: error.message });
+        }
       }
     }
     // Return a response to acknowledge receipt of the event

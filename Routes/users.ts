@@ -1,7 +1,7 @@
 import express, { Request, Response, NextFunction, Express } from "express";
 import { db } from "../config/firebase-config";
 import middleware from "../middleware";
-import { User } from "../models";
+import { getDefaultUser, User } from "../models";
 
 const router = express.Router();
 router.use(middleware.decodeToken);
@@ -13,17 +13,18 @@ require("dotenv").config();
 router.post("/create-user", async (req, res) => {
   try {
     const docRef = db.collection("users").doc(req.body.uid);
-    const newUser: User = {
-      availableTokens: 3000,
-      planType: "Free",
-      numberOfRequests: 0,
-    };
-    await docRef.set(newUser);
+    const usr = await docRef.get();
+    if (!usr.exists) {
+      const newUser = getDefaultUser();
+      await docRef.set(newUser);
 
-    res.status(200).send({ result: "User created" });
-  } catch (error) {
-    console.log("Error - something");
-    res.send({ err: error });
+      res.status(200).send({ result: "User created" });
+    } else {
+      throw new Error("User already exists");
+    }
+  } catch (error: any) {
+    console.log("Error /create-user - ", error);
+    res.send({ err: error.message });
   }
 });
 
