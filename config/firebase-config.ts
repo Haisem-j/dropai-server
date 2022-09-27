@@ -3,7 +3,7 @@ import { getFirestore } from "firebase-admin/firestore";
 
 // Include absolute path to serviceAccoutKey.json
 
-const serviceAccountKey = require("/Users/haisemjemal/Desktop/dropaiserver/serviceAccountKey.json");
+const serviceAccountKey = require("./serviceAccountKey.json");
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccountKey),

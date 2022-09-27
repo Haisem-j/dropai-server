@@ -8,7 +8,7 @@
     "start": "concurrently \"node dist/index.js\" \"stripe listen --forward-to localhost:8080/stripe_webhooks \"",
     "dev": "concurrently \"npx tsc --watch\" \"nodemon -q dist/index.js\"",
     "clean": "rm -rf ./dist",
-    "copy-files": "cp -R ./landingpage ./dist/"
+    "copy-files": "cp -R ./landingpage ./dist/ && cp ./serviceAccountKey.json ./dist/"
   },
   "author": "",
   "license": "ISC",
