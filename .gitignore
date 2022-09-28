@@ -3,3 +3,4 @@
 .env
 /dist
 test.js
+serviceAccountKey.json
