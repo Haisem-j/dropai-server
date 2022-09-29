@@ -75,7 +75,7 @@ app.post(
             throw new Error("User doesnt exist");
           } else {
             const { numberOfRequests } = usr.data() as User;
-            const newTokens = newPlan === "Standard" ? 3000 : 9999;
+            const newTokens = newPlan === "Standard" ? 6000 : 9999;
             const updatedUser = {
               numberOfRequests,
               availableTokens: newTokens,

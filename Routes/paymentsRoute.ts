@@ -32,8 +32,8 @@ router.post("/create-checkout-session", async (req, res) => {
       ],
       customer: customer.id,
       mode: "subscription",
-      success_url: `${process.env.CLIENT_URL}/app/checkout-success`,
-      cancel_url: `${process.env.CLIENT_URL}/app/plans?canceled=true`,
+      success_url: `${process.env.CLIENT_URL}checkout-success`,
+      cancel_url: `${process.env.CLIENT_URL}plans?canceled=true`,
     });
 
     res.send({ url: session.url });

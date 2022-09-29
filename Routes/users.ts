@@ -18,7 +18,7 @@ router.post("/create-user", async (req, res) => {
       const newUser = getDefaultUser();
       await docRef.set(newUser);
 
-      res.status(200).send({ result: "User created" });
+      res.status(200).send({ result: newUser });
     } else {
       throw new Error("User already exists");
     }
