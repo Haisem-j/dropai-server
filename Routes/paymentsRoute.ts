@@ -1,6 +1,7 @@
-import express, { Request, Response, NextFunction, Express } from "express";
+import express from "express";
 import Stripe from "stripe";
 import middleware from "../middleware";
+import { db } from "../config/firebase-config";
 
 const router = express.Router();
 router.use(middleware.decodeToken);
@@ -58,7 +59,6 @@ router.post("/get-billing-info", async (req, res) => {
       customer: paymentId,
       limit: 3,
     });
-
     const billingInfo = {
       payment: {
         brand: paymentMethods.data[0].card?.brand,
@@ -74,6 +74,45 @@ router.post("/get-billing-info", async (req, res) => {
     };
     res.send({
       billingInfo,
+    });
+  } catch (error: any) {
+    console.log(error);
+
+    res.send({ err: error.message });
+  }
+});
+
+/**
+ * Cancel Subscription
+ * Req body -> customerId, uid
+ */
+router.post("/cancel-sub", async (req, res) => {
+  const { customerId, uid } = req.body;
+  try {
+    // Get user
+    const docRef = db.collection("users").doc(uid);
+    const subscriptions = await stripe.customers.retrieve(customerId, {
+      expand: ["subscriptions"],
+    });
+    docRef.update({
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      endOfCycle: subscriptions.subscriptions.data[0].current_period_end,
+    });
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    const subId = subscriptions.subscriptions.data[0].id;
+    const updatedSub = await stripe.subscriptions.update(subId, {
+      cancel_at_period_end: true,
+    });
+    console.log("Update Sub -", updatedSub);
+
+    res.send({
+      data: {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        periodEnd: subscriptions.subscriptions.data[0].current_period_end,
+      },
     });
   } catch (error: any) {
     console.log(error);

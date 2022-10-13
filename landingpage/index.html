@@ -22,7 +22,10 @@
       property="og:title"
       content="DropAi - AI Tools to generate high-quality for your Dropshipping Store"
     />
-    <meta property="og:image" />
+    <meta
+      property="og:image"
+      content="https://dropai.app/assets/dashboard-1.png"
+    />
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image" />
@@ -31,7 +34,10 @@
       property="twitter:title"
       content="DropAi - AI Tools to generate high-quality for your Dropshipping Store"
     />
-    <meta property="twitter:image" />
+    <meta
+      property="twitter:image"
+      content="https://dropai.app/assets/dashboard-1.png"
+    />
   </head>
 
   <body class="font-inter antialiased bg-gray-900 text-gray-200 tracking-tight">
@@ -524,34 +530,6 @@
               <!-- Pricing tables -->
               <div x-data="pricingSwitch">
                 <!-- Pricing toggle -->
-                <div
-                  class="flex justify-center mb-16"
-                  data-aos="fade-up"
-                  data-aos-delay="400"
-                >
-                  <div class="inline-flex items-center">
-                    <div class="text-gray-500 font-medium mr-3">
-                      Billed Monthly
-                    </div>
-                    <div class="form-switch">
-                      <input
-                        type="checkbox"
-                        name="pricing-toggle"
-                        id="pricing-toggle"
-                        class="sr-only"
-                        x-model="value"
-                      />
-                      <label class="bg-gray-600" for="pricing-toggle">
-                        <span class="bg-gray-200" aria-hidden="true"></span>
-                        <span class="sr-only">Enable to see yearly prices</span>
-                      </label>
-                    </div>
-                    <div class="text-gray-500 font-medium ml-3">
-                      Billed Annually
-                      <span class="text-emerald-500">(-20%)</span>
-                    </div>
-                  </div>
-                </div>
 
                 <div
                   class="max-w-sm mx-auto grid gap-8 lg:grid-cols-3 lg:gap-6 items-start lg:max-w-none"
@@ -607,30 +585,24 @@
                       </div>
                     </div>
                     <div class="mb-4 pb-4">
-                      <div class="h4 text-purple-600 mb-1">Standard</div>
+                      <div class="h4 text-purple-600 mb-1">Monthly</div>
                       <div class="inline-flex items-baseline mb-2">
                         <span
-                          x-text="priceOutput.plan2[value][0]"
                           class="text-2xl md:text-3xl font-medium text-gray-400"
-                        ></span>
-                        <span
-                          x-text="priceOutput.plan2[value][1]"
-                          class="h2"
-                        ></span>
-                        <span
-                          x-text="priceOutput.plan2[value][2]"
-                          class="font-medium text-gray-400"
-                        ></span>
+                          >$</span
+                        >
+                        <span class="h2">15</span>
+                        <span class="font-medium text-gray-400">/mo</span>
                       </div>
                       <div class="text-gray-400">
                         Ideal for seasoned dropshippers. Those who are trying
-                        out multiple products/stores. Includes 6000 tokens
+                        out multiple products/stores. Unlimited tokens.
                       </div>
                     </div>
                     <div class="p-3 mt-6">
                       <a
                         class="btn-sm text-white bg-purple-600 hover:bg-purple-700 w-full"
-                        href="https://console.dropai.app"
+                        href="https://console.dropai.app/plans?payments=mo"
                         >Get Started Now</a
                       >
                     </div>
@@ -650,30 +622,28 @@
                       </div>
                     </div>
                     <div class="mb-4 pb-4">
-                      <div class="h4 text-purple-600 mb-1">Unlimited</div>
+                      <div class="h4 text-purple-600 mb-1">
+                        Yearly
+                        <span class="text-emerald-500 text-sm">(-20%)</span>
+                      </div>
                       <div class="inline-flex items-baseline mb-2">
                         <span
-                          x-text="priceOutput.plan3[value][0]"
                           class="text-2xl md:text-3xl font-medium text-gray-400"
-                        ></span>
-                        <span
-                          x-text="priceOutput.plan3[value][1]"
-                          class="h2"
-                        ></span>
-                        <span
-                          x-text="priceOutput.plan3[value][2]"
-                          class="font-medium text-gray-400"
-                        ></span>
+                          >$</span
+                        >
+                        <span class="h2">144</span>
+                        <span class="font-medium text-gray-400">/yr</span>
                       </div>
                       <div class="text-gray-400">
                         Ideal for professional dropshippers. With multiple
-                        products/stores/adverts and need new content daily.
+                        products/stores and need new content daily. Unlimited
+                        tokens.
                       </div>
                     </div>
                     <div class="p-3 mt-6">
                       <a
                         class="btn-sm text-white bg-purple-600 hover:bg-purple-700 w-full"
-                        href="https://console.dropai.app/"
+                        href="https://console.dropai.app/plans?payments=yr"
                         >Get Started Now</a
                       >
                     </div>
@@ -762,7 +732,7 @@
                 </div>
 
                 <!-- CTA form -->
-                <form class="w-full lg:w-1/2">
+                <form class="w-full lg:w-1/2" id="submitBtn">
                   <div
                     class="flex flex-col sm:flex-row justify-center max-w-xs mx-auto sm:max-w-md lg:max-w-none"
                   >
@@ -771,15 +741,16 @@
                       class="w-full appearance-none bg-purple-700 border border-purple-500 focus:border-purple-300 rounded-sm px-4 py-3 mb-2 sm:mb-0 sm:mr-2 text-white placeholder-purple-400"
                       placeholder="Your best email…"
                       aria-label="Your best email…"
+                      required
                     />
-                    <a
+                    <button
                       class="btn text-purple-600 bg-purple-100 hover:bg-white shadow"
-                      href="#0"
-                      >Subscribe</a
+                      id="subBtn"
                     >
+                      Subscribe
+                    </button>
+                    <div class="flex items-center" id="formDiv"></div>
                   </div>
-                  <!-- Success message -->
-                  <!-- <p class="text-center lg:text-left lg:absolute mt-2 opacity-75 text-sm">Thanks for subscribing!</p> -->
                 </form>
               </div>
             </div>
@@ -860,5 +831,42 @@
     <script src="./js/vendors/alpinejs.min.js" defer></script>
     <script src="./js/vendors/aos.js"></script>
     <script src="./js/main.js"></script>
+    <script>
+      const btn = document.getElementById("subBtn");
+      const formDiv = document.getElementById("formDiv");
+      document
+        .getElementById("submitBtn")
+        .addEventListener("submit", async (event) => {
+          event.preventDefault();
+          const email = event.target[0].value;
+          const body = {
+            email,
+          };
+          const res = await fetch("/landing/newsletter", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(body),
+          });
+          const data = await res.json();
+          console.log(data);
+          btn.remove();
+          formDiv.innerHTML = `<svg
+                                class="w-10 h-10 w-1/3"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <path
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                  stroke-width="2"
+                                  d="M5 13l4 4L19 7"
+                                ></path>
+                              </svg>`;
+        });
+    </script>
   </body>
 </html>

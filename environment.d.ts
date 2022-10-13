@@ -9,6 +9,7 @@ declare global {
       STRIPE_KEY: string;
       CLIENT_URL: string;
       STRIPE_WEBHOOK_SEC: string;
+      PRODUCTION_ENV: string;
     }
   }
 }

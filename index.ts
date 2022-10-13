@@ -1,10 +1,11 @@
 import express, { Request, Response, NextFunction, Express } from "express";
 import cors from "cors";
 import Stripe from "stripe";
-
+import morgan from "morgan";
 import AiRoutes from "./Routes/aiRoutes";
 import UsersRoutes from "./Routes/users";
 import PaymentsRoutes from "./Routes/paymentsRoute";
+import LandingRoutes from "./Routes/landingRoutes";
 import { db } from "./config/firebase-config";
 import { User } from "./models";
 
@@ -19,6 +20,7 @@ const port = 8080;
 
 // Middlewares
 app.use(cors());
+app.use(morgan("tiny"));
 // Use JSON parser for all non-webhook routes
 app.use(
   (
@@ -26,7 +28,7 @@ app.use(
     res: express.Response,
     next: express.NextFunction
   ): void => {
-    if (req.originalUrl === "/webhook") {
+    if (req.originalUrl === "/stripe_webhooks") {
       next();
     } else {
       express.json()(req, res, next);
@@ -40,15 +42,17 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/api", AiRoutes);
 app.use("/api/user", UsersRoutes);
 app.use("/api/payments", PaymentsRoutes);
+app.use("/landing", LandingRoutes);
+
 app.use(express.static("landingpage"));
 // Web hooks -> checkout successful
+
 app.post(
-  "/webhook",
+  "/stripe_webhooks",
   // Stripe requires the raw body to construct the event
   express.raw({ type: "application/json" }),
   async (req: express.Request, res: express.Response) => {
     const sig = req.headers["stripe-signature"];
-
     let event: Stripe.Event;
     try {
       event = stripe.webhooks.constructEvent(
@@ -75,14 +79,17 @@ app.post(
             throw new Error("User doesnt exist");
           } else {
             const { numberOfRequests } = usr.data() as User;
-            const newTokens = newPlan === "Standard" ? 6000 : 9999;
+            const newTokens = -10;
             const updatedUser = {
               numberOfRequests,
               availableTokens: newTokens,
               planType: newPlan,
               paymentId: customer.id,
             };
-            docRef.update(updatedUser);
+            await docRef.update({ ...updatedUser });
+            console.log("Updated user! - ", updatedUser);
+
+            // Update user here
           }
         } catch (error: any) {
           console.log("Error - ", error.message);
