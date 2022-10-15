@@ -38,6 +38,20 @@
       property="twitter:image"
       content="https://dropai.app/assets/dashboard-1.png"
     />
+    <!-- Google tag (gtag.js) -->
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=G-KLZLFKXLSR"
+    ></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+
+      gtag("config", "G-KLZLFKXLSR");
+    </script>
   </head>
 
   <body class="font-inter antialiased bg-gray-900 text-gray-200 tracking-tight">
@@ -419,20 +433,6 @@
     <script src="./js/vendors/alpinejs.min.js" defer></script>
     <script src="./js/vendors/aos.js"></script>
     <script src="./js/main.js"></script>
-    <!-- Google tag (gtag.js) -->
-    <script
-      async
-      src="https://www.googletagmanager.com/gtag/js?id=G-KLZLFKXLSR"
-    ></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag() {
-        dataLayer.push(arguments);
-      }
-      gtag("js", new Date());
-
-      gtag("config", "G-KLZLFKXLSR");
-    </script>
     <script>
       const success = document.getElementById("success");
       const input = document.getElementById("sendBtn");
